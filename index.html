@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квесты VR — За гранью реальности</title>
+    <meta name="description" content="Каталог VR-квестов и эскейп-румов — 11 игр в виртуальной реальности">
+    <link rel="preconnect" href="images/quests" crossorigin>
+    <style>
+        :root { --neon: #00ffea; --purple: #9d00ff; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',sans-serif; background:#0a0a0a; color:#e0e0e0; }
+        
+        .nav { position:fixed; top:0; width:100%; background:rgba(10,10,10,0.95); padding:15px 5%; display:flex; justify-content:space-between; align-items:center; z-index:100; border-bottom:1px solid #222; }
+        .logo { font-size:2rem; font-weight:bold; background:linear-gradient(90deg,var(--neon),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .nav-links a { color:#fff; margin-left:30px; text-decoration:none; font-weight:500; }
+        .nav-links a:hover { color:var(--neon); }
+
+        .catalog { padding:100px 5% 80px; }
+        h1 { font-size:3.5rem; text-align:center; margin-bottom:20px; background:linear-gradient(90deg,var(--neon),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .subtitle { text-align:center; font-size:1.3rem; margin-bottom:40px; color:#aaa; }
+
+        .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 35px; }
+        @media (max-width: 640px) { .games-grid { grid-template-columns: 1fr; } }
+
+        .game-card { background:#1a1a1a; border-radius:16px; overflow:hidden; transition:all .4s; border:1px solid #222; cursor:pointer; }
+        .game-card:hover { transform:translateY(-15px); box-shadow:0 0 50px rgba(0,255,234,.35); border-color:var(--neon); }
+        .game-header { height:200px; }
+        .game-header img { width:100%; height:100%; object-fit:cover; }
+        .screenshots { display:flex; gap:4px; padding:8px; background:#111; overflow-x:auto; }
+        .screenshots img { width:80px; height:55px; object-fit:cover; border-radius:4px; flex-shrink:0; }
+        .game-info { padding:20px; }
+        .genre { display:inline-block; background:#222; color:var(--neon); padding:5px 14px; border-radius:20px; font-size:.85rem; margin-bottom:12px; }
+        .game-info h3 { font-size:1.5rem; margin-bottom:10px; }
+        .description { font-size:.97rem; color:#ccc; margin-bottom:15px; }
+        .players { font-size:.92rem; color:#999; }
+
+        .modal { 
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,.94); z-index:1000; align-items:center; justify-content:center; 
+        }
+        .modal-content { 
+            background:#1a1a1a; max-width:920px; width:92%; max-height:94vh; 
+            border-radius:20px; overflow:hidden; position:relative; display:flex; flex-direction:column; 
+        }
+        .modal-header { height:280px; flex-shrink:0; }
+        .modal-header img { width:100%; height:100%; object-fit:cover; }
+        .modal-body { 
+            padding:25px 30px; overflow-y:auto; flex:1; 
+        }
+        .modal-close { 
+            position:absolute; top:12px; right:20px; 
+            font-size:48px; color:#ff2d55; cursor:pointer; z-index:10; 
+            width:55px; height:55px; display:flex; align-items:center; justify-content:center; 
+        }
+        .modal-close:hover { color:#fff; transform:scale(1.15); }
+
+        footer { background:#000; text-align:center; padding:50px 20px; font-size:.95rem; }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="logo">КВЕСТЫ ВИРТУАЛЬНОЙ РЕАЛЬНОСТИ</div>
+    <div class="nav-links">
+    </div>
+</nav>
+
+<section class="catalog">
+    <h1>Квесты VR</h1>
+    <p class="subtitle">vrCAVE • 11 эскейп-румов • Русские версии [RUS]</p>
+    <div class="games-grid" id="gamesGrid"></div>
+</section>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="closeModal">×</span>
+        <div class="modal-header" id="modalHeader"></div>
+        <div class="modal-body" id="modalBody">
+            <h2 id="modalTitle"></h2>
+            <span id="modalGenre" class="genre"></span>
+            <p id="modalDesc"></p>
+            <p id="modalPlayers" class="players"></p>
+            <h3 style="margin:25px 0 15px;color:var(--neon);">Скриншоты</h3>
+            <div id="modalScreenshots" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+            <h3 style="margin:25px 0 15px;color:var(--neon);">Видео</h3>
+            <video id="modalVideo" controls preload="none" style="width:100%;max-height:320px;background:#000;border-radius:8px;"></video>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 Новая реальность • Полностью оффлайн</p>
+</footer>
+
+<script>
+const VID = "https://raw.githubusercontent.com/euro4847-bot/Quest-Videos/master/";
+const games = [
+    {title:"Pirates Plague",genre:"Эскейп-рум",desc:"Вы и ваша пиратская команда пали жертвой проклятия и превратились в рыболюдей! Единственное лекарство заперто глубоко в храме на острове — время на исходе. Самая амбициозная VR-игра с пиратским экшеном, сражениями, мечами, пушками и сложными головоломками.",players:"2–6 • 45 мин • Intermediate",img:"images/quests/pirates-plague-cover.png",screenshots:["images/quests/pirates-plague-ss1.png","images/quests/pirates-plague-ss2.png","images/quests/pirates-plague-ss3.png","images/quests/pirates-plague-ss4.png"],video:VID+"PIRATES-PLAGUE-TRAILER.mp4"},
+    {title:"Manor of Escape",genre:"Эскейп-рум",desc:"Безумный граф Малум проводит жуткие эксперименты с опасными существами в своём особняке. Проберитесь внутрь, расследуйте лабораторию и выберитесь живыми. Полно головоломок и динамичного экшена в стиле хоррора.",players:"2–6 • 45 мин • Intermediate",img:"images/quests/manor-of-escape-cover.png",screenshots:["images/quests/manor-of-escape-ss1.png","images/quests/manor-of-escape-ss2.png","images/quests/manor-of-escape-ss3.png","images/quests/manor-of-escape-ss4.png"],video:VID+"MANOR-OF-ESCAPE-16X9.mp4"},
+    {title:"Time Travel Paradox",genre:"Эскейп-рум",desc:"Ваш коллега доктор Хессенберг украл машину времени и отправил вас в прошлое — на съедение динозаврам. Найдите способ вернуться в настоящее и остановить его до катастрофы. Умные командные головоломки с манипуляцией временем.",players:"2–6 • 45 мин • Intermediate",img:"images/quests/time-travel-paradox-cover.png",screenshots:["images/quests/time-travel-paradox-ss1.png","images/quests/time-travel-paradox-ss2.png","images/quests/time-travel-paradox-ss3.png","images/quests/time-travel-paradox-ss4.png","images/quests/time-travel-paradox-ss5.png"],video:VID+"TIME_TRAVEL_TRAILER.mp4"},
+    {title:"Dragon Tower",genre:"Эскейп-рум",desc:"Ужасные драконы летят к Драконьей башне, чтобы сожрать очередную жертву. В этот раз жертва — вы! Вырвитесь из тюрьмы, исследуйте алхимическую лабораторию и спаситесь от драконов. Крафт, зелья и босс-файт.",players:"2–6 • 45 мин • Intermediate",img:"images/quests/dragon-tower-cover.png",screenshots:["images/quests/dragon-tower-ss1.png","images/quests/dragon-tower-ss2.png","images/quests/dragon-tower-ss3.png","images/quests/dragon-tower-ss4.png","images/quests/dragon-tower-ss5.png"],video:VID+"DRAGON-TOWER-TRAILER-16X9.mp4"},
+    {title:"Space Station Tiberia",genre:"Эскейп-рум",desc:"Самый большой метеорит в истории летит к Земле. Осталось 35 минут. Вы и команда — последняя надежда человечества. Отремонтируйте оборонную платформу Тиберия и уничтожьте угрозу. Космический экшен и командная работа.",players:"2–6 • 45 мин • Easy",img:"images/quests/space-station-tiberia-cover.png",screenshots:["images/quests/space-station-tiberia-ss1.png","images/quests/space-station-tiberia-ss2.png","images/quests/space-station-tiberia-ss3.png","images/quests/space-station-tiberia-ss4.png"],video:VID+"SPACE-STATION-TRAILER.mp4"},
+    {title:"Depths of Osiris",genre:"Эскейп-рум",desc:"Глубоководная платформа Oceanus 5 обнаружила затерянный Храм Осириса. Доберитесь до храма и достаньте легендарный артефакт, пока не закончится кислород. Подводные головоломки, акулы и выживание. Для продвинутых игроков.",players:"2–6 • 45 мин • Advanced",img:"images/quests/depths-of-osiris-cover.png",screenshots:["images/quests/depths-of-osiris-ss1.png","images/quests/depths-of-osiris-ss2.png","images/quests/depths-of-osiris-ss3.png","images/quests/depths-of-osiris-ss4.png"],video:VID+"DEPTHS-OF-OSIRIS-16X9.mp4"},
+    {title:"LaserBots",genre:"Эскейп-рум",desc:"Роботы сбили ваш корабль. Следующий прибудет через 10 минут. Отражайте лазеры мечами и щитами, собирайте кристаллы для гигантской пушки и уничтожайте ботов. Динамичный аркадный экшен-пазл с возрастающей сложностью.",players:"2–6 • 10 мин • Beginner",img:"images/quests/laserbots-cover.png",screenshots:["images/quests/laserbots-ss1.png","images/quests/laserbots-ss2.png","images/quests/laserbots-ss3.png","images/quests/laserbots-ss4.png"],video:VID+"Laserbots-Trailer.mp4"},
+    {title:"Runaway Train",genre:"Эскейп-рум",desc:"Разыскиваемый бандит угнал поезд. Сбейте его дроны, проберитесь через вагоны к финальной схватке. Управляйте пулемётом Гатлинга, крафтьте на плавильне и решайте головоломки выстрелами. Самый сложный квест.",players:"2–6 • 45 мин • Expert",img:"images/quests/runaway-train-cover.png",screenshots:["images/quests/runaway-train-ss1.png","images/quests/runaway-train-ss2.png","images/quests/runaway-train-ss3.png","images/quests/runaway-train-ss4.png","images/quests/runaway-train-ss5.png"],video:VID+"RUNAWAY-TRAIN-TRAILER-LONG-VERSION.mp4"},
+    {title:"Alien Infection",genre:"Эскейп-рум",desc:"Эти истории — просто выдумки, или в мире действительно что-то есть? Возьмите под контроль ужасающие инопланетные технологии и сбегите из летающей тарелки, прежде чем инопланетная инфекция распространится и заберет вас в качестве своих следующих жертв",players:"2–6 • 45 мин • Advanced",img:"images/quests/alien.png",screenshots:["images/quests/Alien-Infection-Screenshot_4-1536x960.png","images/quests/Alien-Infection-Screenshot_5-1536x960.png","images/quests/Alien-Infection-Screenshot_6-1536x960.png","images/quests/Alien-Infection-Screenshot_8-1536x960.png"],video:VID+"Alien-Infection-trailer.mp4"},
+    {title:"Ninja Trials",genre:"Эскейп-рум",desc:"Но это будет непросто. Ваш учитель дал вам три задания: Боевые испытания, Испытания на скрытность и Испытания на выносливость. Только овладев необходимыми навыками, вы наконец будете готовы сразиться с ним и доказать свою состоятельность. Ninja Trials — это семейная игра-квест, предлагающая развлечения и испытания для всех возрастов",players:"2–6 • 45 мин • Beginner",img:"images/quests/HighresScreensho.png",screenshots:["images/quests/HighresScreenshot00023-1536x864.png","images/quests/HighresScreenshot00026-1536x864.png","images/quests/HighresScreenshot00038-1536x864 (1).png","images/quests/ninjaTempleEntrance-1536x864.png"],video:VID+"Ninja_Trials_16_9_Full.mp4"},
+    {title:"Hospital of Horror",genre:"Эскейп-рум",desc:"Прогуляйтесь по коридорам заброшенной больницы — но будьте осторожны, никогда не знаешь, что ждет за следующим поворотом. Благодаря возможностям виртуальной реальности возможно всё. «Больница ужасов» — это аттракцион в стиле «дома с привидениями», предназначенный для более взрослой аудитории.",players:"2–6 • 15 мин • Beginner",img:"images/quests/HOH_SecondFloor4-1536x832.png",screenshots:["images/quests/HOH_FirstFloor1-1536x832.png","images/quests/HOH_FirstFloor2-1536x832.png","images/quests/HOH_FirstFloor3-1536x832.png","images/quests/HOH_SecondFloor3-1536x832.png"],video:VID+"HoH%20Trailer.mp4"}
+];
+function renderGames() {
+    const container = document.getElementById('gamesGrid');
+    container.innerHTML = '';
+    games.forEach((game, i) => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+            <div class="game-header"><img src="${game.img}" alt="${game.title}" loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async"></div>
+            <div class="screenshots">
+                ${game.screenshots.map(s => `<img src="${s}" alt="" loading="lazy" decoding="async">`).join('')}
+            </div>
+            <div class="game-info">
+                <span class="genre">${game.genre}</span>
+                <h3>${game.title}</h3>
+                <p class="description">${game.desc}</p>
+                <p class="players">${game.players}</p>
+            </div>
+        `;
+        card.onclick = () => showModal(game);
+        container.appendChild(card);
+    });
+}
+
+function stopModalVideo() {
+    const videoEl = document.getElementById('modalVideo');
+    videoEl.pause();
+    videoEl.currentTime = 0;
+    videoEl.removeAttribute('src');
+    videoEl.load();
+    videoEl.style.display = 'none';
+}
+
+function showModal(game) {
+    const modal = document.getElementById('modal');
+    const videoEl = document.getElementById('modalVideo');
+
+    stopModalVideo();
+
+    document.getElementById('modalHeader').innerHTML = `<img src="${game.img}" alt="${game.title}">`;
+    document.getElementById('modalTitle').textContent = game.title;
+    document.getElementById('modalGenre').textContent = game.genre;
+    document.getElementById('modalDesc').textContent = game.desc;
+    document.getElementById('modalPlayers').textContent = game.players;
+
+    const scrContainer = document.getElementById('modalScreenshots');
+    scrContainer.innerHTML = game.screenshots
+        .map(s => `<img src="${s}" loading="lazy" decoding="async" style="width:210px;height:140px;object-fit:cover;border-radius:8px;">`)
+        .join('');
+
+    if (game.video) {
+        videoEl.poster = game.img;
+        videoEl.setAttribute('data-src', game.video);
+        videoEl.removeAttribute('src');
+        videoEl.load();
+        videoEl.style.display = 'block';
+    } else {
+        videoEl.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    stopModalVideo();
+    document.getElementById('modal').style.display = 'none';
+}
+
+document.getElementById('closeModal').onclick = closeModal;
+
+document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
+
+document.getElementById('modalVideo').addEventListener('play', function() {
+    if (!this.src && this.getAttribute('data-src')) {
+        this.src = this.getAttribute('data-src');
+    }
+}, { once: true });
+
+renderGames();
+</script>
+</body>
+</html>
