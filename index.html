@@ -136,7 +136,6 @@ function renderGames() {
 function stopModalVideo() {
     const videoEl = document.getElementById('modalVideo');
     videoEl.pause();
-    videoEl.currentTime = 0;
     videoEl.removeAttribute('src');
     videoEl.load();
     videoEl.style.display = 'none';
@@ -161,9 +160,7 @@ function showModal(game) {
 
     if (game.video) {
         videoEl.poster = game.img;
-        videoEl.setAttribute('data-src', game.video);
-        videoEl.removeAttribute('src');
-        videoEl.load();
+        videoEl.src = game.video;
         videoEl.style.display = 'block';
     } else {
         videoEl.style.display = 'none';
@@ -186,12 +183,6 @@ document.getElementById('modal').addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeModal();
 });
-
-document.getElementById('modalVideo').addEventListener('play', function() {
-    if (!this.src && this.getAttribute('data-src')) {
-        this.src = this.getAttribute('data-src');
-    }
-}, { once: true });
 
 renderGames();
 </script>
